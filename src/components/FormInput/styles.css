@@ -1,0 +1,7 @@
+
+.image {
+  position: absolute;
+  height: 40px;
+  left: 10px;
+  border-radius: 50%;
+}
