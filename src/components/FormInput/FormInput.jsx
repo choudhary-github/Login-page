@@ -9,13 +9,13 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { useFormik } from "formik";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import "./styles.css";
 import { indigo } from "@mui/material/colors";
 import { validationSchema } from "../../schema/validationSchema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../firebase";
 
 const FbButton = styled(Button)(({ theme }) => ({
@@ -39,6 +39,7 @@ const GButton = styled(Button)(({ theme }) => ({
 
 function FormInput() {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
   const { values, errors, touched, handleChange, handleBlur, handleSubmit } =
     useFormik({
       initialValues: {
@@ -52,7 +53,6 @@ function FormInput() {
         console.log(data);
       },
     });
-  console.log(errors);
   return (
     <Box
       sx={{
@@ -150,19 +150,36 @@ function FormInput() {
           sx={{ height: 50, fontWeight: 700, fontSize: 15 }}
           type="submit"
           variant="contained"
-          onClick={() => {
-            createUserWithEmailAndPassword(auth, values.Email, values.Password)
+          onClick={async () => {
+            await createUserWithEmailAndPassword(
+              auth,
+              values.Email,
+              values.Password
+            )
               .then((userCredential) => {
                 // Signed in
                 const user = userCredential.user;
-                // ...
                 console.log(user);
+                updateProfile(user, {
+                  displayName: values.Username,
+                });
+                navigate("/login");
+                // .then(() => {
+                //   // Profile updated!
+                //   console.log("Updated");
+                //   // ...
+                // })
+                // .catch((error) => {
+                //   // An error occurred
+                //   console.log("Error", error);
+                //   // ...
+                // });
               })
               .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 // ..
-                console.log( errorMessage);
+                console.log("errorcode ->", errorCode);
               });
           }}
         >
@@ -203,7 +220,7 @@ function FormInput() {
       </Box>
       <Stack mt={1} spacing={1.5}>
         <FbButton href="#" variant="contained" sx={{}} to="#">
-          <img className="image" src="../../../public/assets/facebook.png" />{" "}
+          <img className="image" src="/assets/facebook.png" />{" "}
           <Typography
             display={"flex"}
             alignItems={"center"}
@@ -216,7 +233,7 @@ function FormInput() {
           <img
             style={{ height: "35px" }}
             className="image"
-            src="../../../public/assets/google.png"
+            src="/assets/google.png"
           />{" "}
           <Typography>Login With Google</Typography>
         </GButton>

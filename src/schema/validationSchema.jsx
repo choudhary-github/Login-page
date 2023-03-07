@@ -16,6 +16,11 @@ export const validationSchema = Yup.object({
   ),
 });
 
+export const loginSchema = Yup.object({
+  Email: Yup.string().email().required("Email is required."),
+  Password: Yup.string().required("Password is required."),
+});
+
 // username: "",
 // email: "",
 // password: "",

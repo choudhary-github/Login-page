@@ -8,25 +8,27 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useFormik } from "formik";
 import { styled } from "@mui/material/styles";
 import { indigo } from "@mui/material/colors";
-import { validationSchema } from "../../schema/validationSchema";
+import { loginSchema } from "../../schema/validationSchema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { dispatch } = useContext(AuthContext);
   const { values, errors, touched, handleChange, handleBlur, handleSubmit } =
     useFormik({
       initialValues: {
-        Username: "",
-        // Email: "",
+        Email: "",
         Password: "",
-        // ConfirmPassword: "",
       },
-      validationSchema: validationSchema,
+      validationSchema: loginSchema,
       onSubmit: (data) => {
         console.log(data);
       },
@@ -89,14 +91,14 @@ function Login() {
           </Typography>
           <TextField
             onBlur={handleBlur}
-            helperText={touched.Username && errors.Username}
-            error={touched.Username && !!errors.Username}
+            helperText={touched.Email && errors.Email}
+            error={touched.Email && !!errors.Email}
             onChange={handleChange}
-            type="text"
-            value={values.Username}
-            name="Username"
+            type="email"
+            value={values.Email}
+            name="Email"
             required
-            label="Username"
+            label="Email"
             sx={{
               marginBottom: "15px",
             }}
@@ -129,9 +131,27 @@ function Login() {
             }}
           />
           <Button
-            sx={{ height: 50, fontWeight: 700, fontSize: 15 }}
+            sx={{ mt: 1, height: 50, fontWeight: 700, fontSize: 15 }}
             type="submit"
             variant="contained"
+            onClick={() => {
+              dispatch({ type: "LOGIN_START" });
+              signInWithEmailAndPassword(auth, values.Email, values.Password)
+                .then((userCredential) => {
+                  // Signed in
+                  const user = userCredential.user;
+                  dispatch({ type: "LOGIN_SUCCESS", payload: user });
+                  console.log(user);
+                  navigate("/");
+                  // ...
+                })
+                .catch((error) => {
+                  dispatch({ type: "LOGIN_FAILURE" });
+                  const errorCode = error.code;
+                  const errorMessage = error.message;
+                  console.log("errorCode -> ", errorCode);
+                });
+            }}
           >
             Login
           </Button>
@@ -169,7 +189,7 @@ function Login() {
         </Box>
         <Stack mt={1.5} spacing={1.5}>
           <FbButton href="#" variant="contained" sx={{}} to="#">
-            <img className="image" src="../../../public/assets/facebook.png" />{" "}
+            <img className="image" src="/assets/facebook.png" />{" "}
             <Typography
               display={"flex"}
               alignItems={"center"}
@@ -182,7 +202,7 @@ function Login() {
             <img
               style={{ height: "35px" }}
               className="image"
-              src="../../../public/assets/google.png"
+              src="/assets/google.png"
             />{" "}
             <Typography>Login With Google</Typography>
           </GButton>
@@ -191,5 +211,6 @@ function Login() {
     </Container>
   );
 }
+import { AuthContext } from "../../context/AuthContext";
 
 export default Login;
